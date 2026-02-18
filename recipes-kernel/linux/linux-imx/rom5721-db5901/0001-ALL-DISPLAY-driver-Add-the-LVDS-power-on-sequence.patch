@@ -1,0 +1,417 @@
+From 250329017ef3571cd83fd47c333e7951088008f6 Mon Sep 17 00:00:00 2001
+From: "Hank.Hsueh" <Hank.Hsueh@advantech.com.tw>
+Date: Tue, 3 Dec 2024 14:23:07 +0800
+Subject: [PATCH] [ALL][DISPLAY] driver: Add the LVDS power on sequence commit
+ 9e1727c7de8aa4e025dfbe300d75c1a1a77b0729
+
+---
+ drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c |  14 ++
+ drivers/gpu/drm/panel/panel-simple.c       | 126 ++++++++++++++++++
+ drivers/video/backlight/pwm_bl.c           | 145 +++++++++++++++++++++
+ 3 files changed, 285 insertions(+)
+
+diff --git a/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c b/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c
+index 55eec4ea74e7e..fadd118b34c43 100644
+--- a/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c
++++ b/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c
+@@ -31,6 +31,12 @@ struct lcdifv3_crtc {
+ 	u32 pix_fmt;		/* drm fourcc */
+ };
+ 
++#if defined(CONFIG_ARCH_ADVANTECH)
++static int first_flip_complete = 1;
++extern void enable_lcd_vdd_en(void);
++extern void enable_ldb_signal(void);
++#endif
++
+ #define to_lcdifv3_crtc(crtc) container_of(crtc, struct lcdifv3_crtc, base)
+ 
+ static void lcdifv3_crtc_reset(struct drm_crtc *crtc)
+@@ -179,6 +185,14 @@ static void lcdifv3_crtc_atomic_enable(struct drm_crtc *crtc,
+ 	lcdifv3_plane_atomic_update(crtc->primary, state);
+ 	lcdifv3_en_shadow_load(lcdifv3);
+ 
++#if defined(CONFIG_ARCH_ADVANTECH)
++	if (first_flip_complete) {
++		enable_lcd_vdd_en();
++		enable_ldb_signal();
++		first_flip_complete = 0;
++	}
++#endif
++
+ 	/* run LCDIFv3 */
+ 	lcdifv3_enable_controller(lcdifv3);
+ }
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index a1da779f304df..4ea8ca24ebd3e 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -155,6 +155,10 @@ struct panel_simple {
+ 	enum drm_panel_orientation orientation;
+ };
+ 
++bool blank_flag = false;
++extern void enable_ldb_bkl_vcc(void);
++extern void enable_ldb_bkl_pwm(void);
++
+ static inline struct panel_simple *to_panel_simple(struct drm_panel *panel)
+ {
+ 	return container_of(panel, struct panel_simple, base);
+@@ -360,6 +364,14 @@ static int panel_simple_enable(struct drm_panel *panel)
+ 	if (p->desc->delay.enable)
+ 		msleep(p->desc->delay.enable);
+ 
++	if (!blank_flag) {
++		enable_ldb_bkl_vcc();
++		enable_ldb_bkl_pwm();
++		blank_flag = true;
++	}
++
++	p->enabled = true;
++
+ 	return 0;
+ }
+ 
+@@ -1326,6 +1338,58 @@ static const struct panel_desc auo_t215hvn01 = {
+ 	.connector_type = DRM_MODE_CONNECTOR_LVDS,
+ };
+ 
++static const struct display_timing auo_g070vw01_v0_timings = {
++        .pixelclock = { 29500000, 29500000, 29500000 },
++        .hactive = { 800, 800, 800 },
++        .hfront_porch = { 24, 24, 24 },
++        .hback_porch = { 96, 96, 96 },
++        .hsync_len = { 72, 72, 72 },
++        .vactive = { 480, 480, 480 },
++        .vfront_porch = { 10, 10, 10 },
++        .vback_porch = { 3, 3, 3 },
++        .vsync_len = { 7, 7, 7 },
++        .flags = DISPLAY_FLAGS_DE_HIGH,
++};
++
++static const struct panel_desc auo_g070vw01_v0 = {
++        .timings = &auo_g070vw01_v0_timings,
++        .num_timings = 1,
++        .bpc = 8,
++        .size = {
++                .width = 152,
++                .height = 91,
++        },
++        .bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
++        .bus_flags = DRM_BUS_FLAG_DE_HIGH,
++        .connector_type = DRM_MODE_CONNECTOR_LVDS,
++};
++
++static const struct display_timing auo_g215hvn01_0_timings = {
++        .pixelclock = { 170000000, 170000000, 170000000 },
++        .hactive = { 1920, 1920, 1920 },
++        .hfront_porch = { 30, 30, 30 },
++        .hback_porch = { 90, 90, 90 },
++        .hsync_len = { 60, 60, 60 },
++        .vactive = { 1080, 1080, 1080 },
++        .vfront_porch = { 38, 38, 38 },
++        .vback_porch = { 5, 5, 5 },
++        .vsync_len = { 7, 7, 7 },
++        .flags = DISPLAY_FLAGS_DE_HIGH,
++};
++
++static const struct panel_desc auo_g215hvn01_0 = {
++        .timings = &auo_g215hvn01_0_timings,
++        .num_timings = 1,
++        .bpc = 8,
++        .size = {
++                .width = 476,
++                .height = 268,
++        },
++        .bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
++        .bus_flags = DRM_BUS_FLAG_DE_HIGH,
++        .connector_type = DRM_MODE_CONNECTOR_LVDS,
++};
++
+ static const struct drm_display_mode avic_tm070ddh03_mode = {
+ 	.clock = 51200,
+ 	.hdisplay = 1024,
+@@ -4723,6 +4787,12 @@ static const struct of_device_id platform_of_match[] = {
+ 	}, {
+ 		.compatible = "auo,t215hvn01",
+ 		.data = &auo_t215hvn01,
++	}, {
++		.compatible = "auo,g070vw01_v0",
++		.data = &auo_g070vw01_v0,
++	}, {
++		.compatible = "auo,g215hvn01_0",
++		.data = &auo_g215hvn01_0,
+ 	}, {
+ 		.compatible = "avic,tm070ddh03",
+ 		.data = &avic_tm070ddh03,
+@@ -5377,11 +5447,46 @@ static const struct panel_desc_dsi osd101t2045_53ts = {
+ 	.lanes = 4,
+ };
+ 
++#if defined(CONFIG_DRM_PANEL_AUO_G101UAN02)
++static const struct drm_display_mode auo_g101uan02_mode = {
++	.clock = 148500,
++	.hdisplay = 1920,
++	.hsync_start = 1920 + 60,
++	.hsync_end = 1920 + 60 + 18,
++	.htotal = 1920 + 60 + 18 + 60,
++	.vdisplay = 1200,
++	.vsync_start = 1200 + 4,
++	.vsync_end = 1200 + 4 + 4,
++	.vtotal = 1200 + 4 + 4 + 4,
++};
++
++static const struct panel_desc_dsi auo_g101uan02 = {
++	.desc = {
++		.modes = &auo_g101uan02_mode,
++		.num_modes = 1,
++		.bpc = 8,
++		.size = {
++			.width = 217,
++			.height = 136,
++		},
++		.connector_type = DRM_MODE_CONNECTOR_DSI,
++	},
++	.flags = MIPI_DSI_MODE_VIDEO,
++	.format = MIPI_DSI_FMT_RGB888,
++	.lanes = 4,
++};
++#endif
++
+ static const struct of_device_id dsi_of_match[] = {
+ 	{
+ 		.compatible = "auo,b080uan01",
+ 		.data = &auo_b080uan01
+ 	}, {
++#if defined(CONFIG_DRM_PANEL_AUO_G101UAN02)
++		.compatible = "auo,g101uan02",
++		.data = &auo_g101uan02
++	}, {
++#endif
+ 		.compatible = "boe,tv080wum-nl0",
+ 		.data = &boe_tv080wum_nl0
+ 	}, {
+@@ -5409,11 +5514,32 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
+ {
+ 	const struct panel_desc_dsi *desc;
+ 	int err;
++	struct gpio_desc *gpio_dsi_vcc_enable_desc = NULL;
++	struct gpio_desc *gpio_bklt_vcc_enable_desc = NULL;
++	struct gpio_desc *gpio_dsi_bkl_enable_desc = NULL;
+ 
+ 	desc = of_device_get_match_data(&dsi->dev);
+ 	if (!desc)
+ 		return -ENODEV;
+ 
++	gpio_dsi_vcc_enable_desc = devm_gpiod_get_optional(&dsi->dev, "dsi-vcc-enable", GPIOD_OUT_LOW);
++	if (gpio_dsi_vcc_enable_desc != NULL)
++	{
++		gpiod_set_value_cansleep(gpio_dsi_vcc_enable_desc, 1);
++	}
++
++	gpio_bklt_vcc_enable_desc = devm_gpiod_get_optional(&dsi->dev, "bklt-vcc-enable", GPIOD_OUT_LOW);
++	if (gpio_bklt_vcc_enable_desc != NULL)
++	{
++		gpiod_set_value_cansleep(gpio_bklt_vcc_enable_desc, 1);
++	}
++
++	gpio_dsi_bkl_enable_desc = devm_gpiod_get_optional(&dsi->dev, "dsi-bkl-enable", GPIOD_OUT_LOW);
++	if (gpio_dsi_bkl_enable_desc != NULL)
++	{
++		gpiod_set_value_cansleep(gpio_dsi_bkl_enable_desc, 1);
++	}
++
+ 	err = panel_simple_probe(&dsi->dev, &desc->desc);
+ 	if (err < 0)
+ 		return err;
+diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/pwm_bl.c
+index 343e90974c281..f843fd0bc7414 100644
+--- a/drivers/video/backlight/pwm_bl.c
++++ b/drivers/video/backlight/pwm_bl.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/delay.h>
++#include <uapi/linux/synclink.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+@@ -18,6 +19,8 @@
+ #include <linux/pwm_backlight.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
++#include <linux/of_gpio.h>
++#include <linux/delay.h>
+ 
+ struct pwm_bl_data {
+ 	struct pwm_device	*pwm;
+@@ -91,10 +94,85 @@ static int compute_duty_cycle(struct pwm_bl_data *pb, int brightness, struct pwm
+ 	return duty_cycle + lth;
+ }
+ 
++struct gpio_desc *gpio_lvds_vcc_en_desc = NULL;
++struct gpio_desc *gpio_lvds_bkl_en_desc = NULL;
++struct gpio_desc *gpio_bklt_vcc_en_desc = NULL;
++int lvds_vcc_delay_value;
++int lvds_bkl_delay_value;
++int bklt_pwm_delay_value;
++int bklt_en_delay_value;
++int lvds_vcc_flag;
++int lvds_bkl_flag;
++int bklt_vcc_flag;
++
++void enable_lcd_vdd_en(void)
++{
++	/* LVDS Panel power enable */
++	if (gpio_lvds_vcc_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 1 Start to enable LVDS VDD. lvds_vcc_flag=%d\n",lvds_vcc_flag);
++		gpio_set_value_cansleep(gpio_lvds_vcc_en_desc, 1);
++	}
++
++	printk(KERN_INFO "[LVDS Sequence] 2 Start to enable LVDS signal.\n");
++}
++
++void enable_ldb_signal(void)
++{
++	mdelay(lvds_vcc_delay_value); // T2 for AUO 7"
++}
++
++void enable_ldb_bkl_vcc(void)
++{
++	mdelay(lvds_bkl_delay_value); // T3 for AUO 7"
++
++	// Backlight On (VCC)
++	if (gpio_bklt_vcc_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 3 Start to enable backlight VCC. bklt_vcc_flag=%d\n",bklt_vcc_flag);
++		gpio_set_value_cansleep(gpio_bklt_vcc_en_desc, 1);
++	}
++
++	mdelay(bklt_pwm_delay_value); // T8 for AUO 7"
++	printk(KERN_INFO "[LVDS Sequence] 4 Start to enable backlight PWM.\n");
++}
++
++void enable_ldb_bkl_pwm(void)
++{
++	mdelay(bklt_en_delay_value); // T9 for AUO 7"
++
++	// Backlight Enable (Display On/Off)
++	if (gpio_lvds_bkl_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 5 Start to enable LVDS backlight.\n");
++		gpio_set_value_cansleep(gpio_lvds_bkl_en_desc, 1);
++	}
++}
++
++void disable_lcd_vdd_en(void)
++{
++	if (gpio_lvds_vcc_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 7 Start to disable LVDS VDD. lvds_vcc_flag=%d\n",lvds_vcc_flag);
++		gpio_set_value_cansleep(gpio_lvds_vcc_en_desc, 0);
++	}
++}
++
++void disable_ldb_bkl_pwm(void)
++{
++	if (gpio_lvds_bkl_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 6 Start to disable LVDS backlight.\n");
++		gpio_set_value_cansleep(gpio_lvds_bkl_en_desc, 0);
++	}
++}
++
+ static int pwm_backlight_update_status(struct backlight_device *bl)
+ {
+ 	struct pwm_bl_data *pb = bl_get_data(bl);
++
+ 	int brightness = backlight_get_brightness(bl);
++
+ 	struct pwm_state state;
+ 
+ 	if (pb->notify)
+@@ -121,6 +199,7 @@ static int pwm_backlight_update_status(struct backlight_device *bl)
+ 		 * inactive output.
+ 		 */
+ 		state.enabled = !pb->power_supply && !pb->enable_gpio;
++
+ 		pwm_apply_might_sleep(pb->pwm, &state);
+ 	}
+ 
+@@ -372,6 +451,72 @@ static int pwm_backlight_parse_dt(struct device *dev,
+ 
+ 		data->max_brightness = num_levels - 1;
+ 	}
++
++	gpio_lvds_vcc_en_desc = devm_gpiod_get_optional(dev, "lvds-vcc-enable", GPIOD_OUT_LOW);
++	gpio_bklt_vcc_en_desc = devm_gpiod_get_optional(dev, "bklt-vcc-enable", GPIOD_OUT_LOW);
++	gpio_lvds_bkl_en_desc = devm_gpiod_get_optional(dev, "lvds-bkl-enable", GPIOD_OUT_LOW);
++
++	if (gpio_lvds_vcc_en_desc != NULL)
++	{
++		lvds_vcc_flag = gpiod_is_active_low(gpio_lvds_vcc_en_desc);
++	}
++
++	if (gpio_bklt_vcc_en_desc != NULL)
++	{
++		bklt_vcc_flag = gpiod_is_active_low(gpio_bklt_vcc_en_desc);
++	}
++
++	if (gpio_lvds_bkl_en_desc != NULL)
++	{
++		lvds_bkl_flag = gpiod_is_active_low(gpio_lvds_bkl_en_desc);
++	}
++
++	if (of_find_property(node, "skip-gpios-init", NULL)) {
++		printk("[LVDS] Skip setting GPIOs to default states\n");
++		goto get_delays;
++	}
++
++	/* Set default to output */
++	if (gpio_lvds_vcc_en_desc != NULL)
++	{
++		gpiod_set_value_cansleep(gpio_lvds_vcc_en_desc, 0);
++	}
++
++	if (gpio_bklt_vcc_en_desc != NULL)
++	{
++		gpiod_set_value_cansleep(gpio_bklt_vcc_en_desc, 0);
++	}
++
++	if (gpio_lvds_bkl_en_desc != NULL)
++        {
++		gpiod_set_value_cansleep(gpio_lvds_bkl_en_desc, 0);
++	}
++
++get_delays:
++	ret = of_property_read_u32(node,"lvds-vcc-delay-time",&lvds_vcc_delay_value);
++	if (ret < 0)
++	{
++		lvds_vcc_delay_value = 25;
++	}
++
++	ret = of_property_read_u32(node,"lvds-bkl-delay-time",&lvds_bkl_delay_value);
++	if (ret < 0)
++	{
++		lvds_bkl_delay_value = 210;
++	}
++
++	ret = of_property_read_u32(node,"bklt-pwm-delay-time",&bklt_pwm_delay_value);
++	if (ret < 0)
++	{
++		bklt_pwm_delay_value = 20;
++	}
++
++	ret = of_property_read_u32(node,"bklt-en-delay-time",&bklt_en_delay_value);
++	if (ret < 0)
++	{
++		bklt_en_delay_value = 20;
++	}
++
+ 	return 0;
+ }
+ 
+-- 
+2.43.0
+
