@@ -1,0 +1,40 @@
+From 768c79800845922bc184a73bfcfc6f1adf4abb12 Mon Sep 17 00:00:00 2001
+From: Mikhail Tsukerman <miketsukerman@gmail.com>
+Date: Mon, 23 Feb 2026 18:10:35 +0100
+Subject: [PATCH 3/3] Advantech modifications to lcdifv3-crtc
+
+---
+ drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c b/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c
+index 02694e1abbabb..83f3f6b3a6cf0 100644
+--- a/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c
++++ b/drivers/gpu/drm/imx/lcdifv3/lcdifv3-crtc.c
+@@ -31,6 +31,10 @@ struct lcdifv3_crtc {
+ 	u32 pix_fmt;		/* drm fourcc */
+ };
+ 
++static int first_flip_complete = 1;
++extern void enable_lcd_vdd_en(void);
++extern void enable_ldb_signal(void);
++
+ #define to_lcdifv3_crtc(crtc) container_of(crtc, struct lcdifv3_crtc, base)
+ 
+ static void lcdifv3_crtc_reset(struct drm_crtc *crtc)
+@@ -179,6 +183,12 @@ static void lcdifv3_crtc_atomic_enable(struct drm_crtc *crtc,
+ 	lcdifv3_plane_atomic_update(crtc->primary, state);
+ 	lcdifv3_en_shadow_load(lcdifv3);
+ 
++	if (first_flip_complete) {
++		enable_lcd_vdd_en();
++		enable_ldb_signal();
++		first_flip_complete = 0;
++	}
++
+ 	/* run LCDIFv3 */
+ 	lcdifv3_enable_controller(lcdifv3);
+ }
+-- 
+2.43.0
+

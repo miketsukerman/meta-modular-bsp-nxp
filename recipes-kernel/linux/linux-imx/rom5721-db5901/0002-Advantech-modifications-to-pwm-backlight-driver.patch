@@ -1,0 +1,135 @@
+From d13a019d80d7e58feeba69b2e231a958acd69b16 Mon Sep 17 00:00:00 2001
+From: Mikhail Tsukerman <miketsukerman@gmail.com>
+Date: Mon, 23 Feb 2026 17:53:54 +0100
+Subject: [PATCH 2/2] Advantech modifications to  pwm backlight driver
+
+---
+ drivers/video/backlight/pwm_bl.c | 105 +++++++++++++++++++++++++++++++
+ 1 file changed, 105 insertions(+)
+
+diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/pwm_bl.c
+index e6c03cf35abf8..4aa0f09d16a96 100644
+--- a/drivers/video/backlight/pwm_bl.c
++++ b/drivers/video/backlight/pwm_bl.c
+@@ -18,6 +18,8 @@
+ #include <linux/pwm_backlight.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
++#include <linux/of_gpio.h>
++#include <linux/delay.h>
+ 
+ struct pwm_bl_data {
+ 	struct pwm_device	*pwm;
+@@ -91,6 +93,109 @@ static int compute_duty_cycle(struct pwm_bl_data *pb, int brightness, struct pwm
+ 	return duty_cycle + lth;
+ }
+ 
++struct gpio_desc *gpio_lvds_vcc_en_desc = NULL;
++struct gpio_desc *gpio_lvds_bkl_en_desc = NULL;
++struct gpio_desc *gpio_bklt_vcc_en_desc = NULL;
++int lvds_vcc_delay_value;
++int lvds_bkl_delay_value;
++int bklt_pwm_delay_value;
++int bklt_en_delay_value;
++int lvds_vcc_flag;
++int lvds_bkl_flag;
++int bklt_vcc_flag;
++int lvds_stby_flag;
++int lvds_reset_flag;
++struct gpio_desc *gpio_lvds_reset_en_desc = NULL;
++struct gpio_desc *gpio_lvds_stby_en_desc = NULL;
++
++
++void enable_lcd_vdd_en(void)
++{
++	/* LVDS Panel power enable */
++	if (gpio_lvds_vcc_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 1 Start to enable LVDS VDD. lvds_vcc_flag=%d\n",lvds_vcc_flag);
++		gpio_set_value_cansleep(gpio_lvds_vcc_en_desc, 1);
++	}
++
++	printk(KERN_INFO "[LVDS Sequence] 2 Start to enable LVDS signal.\n");
++}
++
++void enable_bridge_stdy_en(void)
++{
++       /* Bridge IC　standby */
++	if (gpio_lvds_stby_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence]Bridge IC  standby and reset enable\n");
++		gpio_set_value_cansleep(gpio_lvds_stby_en_desc, 1);
++		msleep(10);
++		gpio_set_value_cansleep(gpio_lvds_reset_en_desc, 1);
++	}
++}
++
++void disable_bridge_stdy_en(void)
++{
++       /* Bridge IC　standby */
++	if (gpio_lvds_stby_en_desc != NULL)
++	{
++       printk(KERN_INFO "[LVDS Sequence] Bridge IC  standby and reset disable \n");
++		gpio_set_value_cansleep(gpio_lvds_stby_en_desc, 0);
++		msleep(10);
++		gpio_set_value_cansleep(gpio_lvds_reset_en_desc, 0);
++	}
++
++}
++
++void enable_ldb_signal(void)
++{
++	mdelay(lvds_vcc_delay_value); // T2 for AUO 7"
++}
++
++void enable_ldb_bkl_vcc(void)
++{
++	mdelay(lvds_bkl_delay_value); // T3 for AUO 7"
++
++	// Backlight On (VCC)
++	if (gpio_bklt_vcc_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 3 Start to enable backlight VCC. bklt_vcc_flag=%d\n",bklt_vcc_flag);
++		gpio_set_value_cansleep(gpio_bklt_vcc_en_desc, 1);
++	}
++
++	mdelay(bklt_pwm_delay_value); // T8 for AUO 7"
++	printk(KERN_INFO "[LVDS Sequence] 4 Start to enable backlight PWM.\n");
++}
++
++void enable_ldb_bkl_pwm(void)
++{
++	mdelay(bklt_en_delay_value); // T9 for AUO 7"
++
++	// Backlight Enable (Display On/Off)
++	if (gpio_lvds_bkl_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 5 Start to enable LVDS backlight.\n");
++		gpio_set_value_cansleep(gpio_lvds_bkl_en_desc, 1);
++	}
++}
++
++void disable_lcd_vdd_en(void)
++{
++	if (gpio_lvds_vcc_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 7 Start to disable LVDS VDD. lvds_vcc_flag=%d\n",lvds_vcc_flag);
++		gpio_set_value_cansleep(gpio_lvds_vcc_en_desc, 0);
++	}
++}
++
++void disable_ldb_bkl_pwm(void)
++{
++	if (gpio_lvds_bkl_en_desc != NULL)
++	{
++		printk(KERN_INFO "[LVDS Sequence] 6 Start to disable LVDS backlight.\n");
++		gpio_set_value_cansleep(gpio_lvds_bkl_en_desc, 0);
++	}
++}
++
+ static int pwm_backlight_update_status(struct backlight_device *bl)
+ {
+ 	struct pwm_bl_data *pb = bl_get_data(bl);
+-- 
+2.43.0
+
