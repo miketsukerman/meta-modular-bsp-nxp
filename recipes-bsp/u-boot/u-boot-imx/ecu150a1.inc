@@ -5,4 +5,3 @@ SRC_URI += " \
     file://lpddr4_timing_4g.c;subdir=git/board/freescale/imx8mq_evk/ \
     file://ecu150a1-uboot-imx.patch \
 "
-
