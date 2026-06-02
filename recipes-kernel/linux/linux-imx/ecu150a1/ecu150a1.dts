@@ -161,7 +161,6 @@
 		 <&clk IMX8MQ_CLK_PCIE1_PHY>,
 		 <&pcie0_refclk>;
 	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
-	vph-supply = <&vgen5_reg>;
 	assigned-clocks = <&clk IMX8MQ_CLK_PCIE1_AUX>,
 			  <&clk IMX8MQ_CLK_PCIE1_PHY>,
 			  <&clk IMX8MQ_CLK_PCIE1_CTRL>;
