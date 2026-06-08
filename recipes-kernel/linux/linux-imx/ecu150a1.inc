@@ -4,6 +4,7 @@ SRC_URI += " \
     file://ecu150a1.dts;subdir=git/arch/arm64/boot/dts/freescale \
     file://usb_wdm.cfg \
     file://fintek-f81603.cfg \
+    file://rtl8169.cfg \
 "
 
 # Hontek RTC driver is needed for the ECU150A1 board, but it is not yet upstreamed. 
@@ -14,10 +15,15 @@ SRC_URI += " \
     file://drivers/rtc/rtc-ht1382.cfg \
 "
 
+# additional kernel configuration options for the ECU150A1 board
+SRC_URI += "file://kernel_config.cfg"
+
 DELTA_KERNEL_DEFCONFIG += " \
         usb_wdm.cfg \
         fintek-f81603.cfg \
+        rtl8169.cfg \
         drivers/rtc/rtc-ht1382.cfg \
+        kernel_config.cfg \
 "
 
 do_configure:prepend() {
