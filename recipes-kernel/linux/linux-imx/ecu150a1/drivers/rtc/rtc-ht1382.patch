@@ -1,29 +1,3 @@
-diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
-index 624610f94277..90890b20b7ad 100644
---- a/drivers/char/Kconfig
-+++ b/drivers/char/Kconfig
-@@ -131,6 +131,12 @@ config POWERNV_OP_PANEL
- 
- 	  If unsure, say M here to build it as a module called powernv-op-panel.
- 
-+config ECU_BOARD
-+	tristate "advantech imx8 ecu board driver"
-+	default n
-+	help
-+	  this driver added by yuyan.tsai
-+
- source "drivers/char/ipmi/Kconfig"
- 
- config DS1620
-diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index 4fb12f88b97a..d96ab4cdd091 100644
---- a/drivers/char/Makefile
-+++ b/drivers/char/Makefile
-@@ -46,3 +46,4 @@ obj-$(CONFIG_XILLYBUS_CLASS)	+= xillybus/
- obj-$(CONFIG_POWERNV_OP_PANEL)	+= powernv-op-panel.o
- obj-$(CONFIG_ADI)		+= adi.o
- obj-$(CONFIG_HAVE_IMX_AMP)      += imx_amp/
-+obj-$(CONFIG_ECU_BOARD)		+= ecu_board.o
 diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
 index c2e928f48fc9..1a4c486a60d2 100644
 --- a/drivers/rtc/Kconfig
