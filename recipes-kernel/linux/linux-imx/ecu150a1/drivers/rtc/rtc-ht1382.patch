@@ -1,3 +1,5 @@
+Upstream-Status: Inappropriate
+
 diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
 index c2e928f48fc9..1a4c486a60d2 100644
 --- a/drivers/rtc/Kconfig
@@ -10,7 +12,7 @@ index c2e928f48fc9..1a4c486a60d2 100644
 +        tristate "HT1382 RTC"
 +        help
 +          If you say Y here you will get support for the
-+          HOLTEK HT1282 RTC chips.
++          HOLTEK HT1382 RTC chips.
 +
 +          This driver can also be built as a module. If so, the module
 +          will be called rtc-ht1382.

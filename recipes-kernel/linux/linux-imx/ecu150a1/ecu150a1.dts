@@ -48,7 +48,6 @@
 	};
 
 	aliases {
-		rtc0 = &rx8900;
 		rtc1 = &snvs_rtc;
 		watchdog0 = &wdt;
 	};
@@ -92,64 +91,24 @@
 		regulator-always-on;
 	};
 
-	// sound {
-	// 	compatible = "fsl,sgtl5000",
-	// 					"fsl,imx-audio-sgtl5000";
-	// 	model = "sgtl5000";
-	// 	codec-master;
-	// 	ssi-controller = <&sai2>;
-	// 	audio-codec = <&codec>;
-	// 	audio-routing =
-	// 			"MIC_IN", "Mic Jack",
-	// 			"Mic Jack", "Mic Bias",
-	// 			"Headphone Jack", "HP_OUT";
-	// 	no-audmux;
-	// };
+	i2c5: i2c5_gpio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "i2c-gpio";
+		sda-gpios = <&gpio1 5 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>; /*SDA*/
+		scl-gpios = <&gpio1 4 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>; /*SCL*/
+		i2c-gpio,delay-us = <4>;
 
-	// sound-hdmi {
-	// 	compatible = "fsl,imx8mq-evk-cdnhdmi",
-	// 			"fsl,imx-audio-cdnhdmi";
-	// 	model = "imx-audio-hdmi";
-	// 	audio-cpu = <&sai4>;
-	// 	protocol = <1>;
-	// 	hdmi-out;
-	// 	constraint-rate = <44100>,
-	// 			<88200>,
-	// 			<176400>,
-	// 			<32000>,
-	// 			<48000>,
-	// 			<96000>,
-	// 			<192000>;
-	// };
+		status = "okay";
+		ht1382: rtc@68 {
+			compatible = "htk,ht1382";
+			reg = <0x68>; /* 7-bit address format 0xDO >> 1 | r/w = 0x68 */
+		};
+	};
 
-	// gpio-keys {
-    //             compatible = "gpio-keys";
-    //             #address-cells = <1>;
-    //             #size-cells = <0>;
-    //             pinctrl-0 = <&pinctrl_lid_key &pinctrl_sleep_key>;
-    //             pinctrl-names = "default";
-    //             lid@1 {
-	// 		label = "LID KEY";
-	// 		gpios = <&gpio3 20 GPIO_ACTIVE_HIGH>; /* GPIO_ACTIVE_LOW:1 */
-	// 		linux,input-type = <EV_PWR>; /* EV_KEY */
-	// 		linux,code = <KEY_SUSPEND>;     /* KEY_POWER */
-	// 		wakeup-source;
-	// 		debounce-interval = <100>;
-    //             };
-    //             sleep@2 {
-	// 		label = "SLEEP KEY";
-	// 		gpios = <&gpio3 25 GPIO_ACTIVE_HIGH>; /* GPIO_ACTIVE_LOW:1 */
-	// 		linux,input-type = <EV_PWR>; /* EV_KEY */
-	// 		linux,code = <KEY_SLEEP>;     /* KEY_POWER */
-	// 		wakeup-source;
-	// 		debounce-interval = <100>;
-    //             };
-	// };
-
-        busfreq {
-                status = "disabled";
-        };
-
+	busfreq {
+			status = "disabled";
+	};
 };
 
 &gpio4 {
@@ -319,40 +278,6 @@
 	status = "okay";
 };
 
-&i2c4 {
-	clock-frequency = <100000>;
-	pinctrl-names = "default", "gpio";
-	pinctrl-0 = <&pinctrl_i2c4>;
-	pinctrl-1 = <&pinctrl_i2c4_gpio>;
-	scl-gpios = <&gpio5 20 GPIO_ACTIVE_HIGH>;
-	sda-gpios = <&gpio5 21 GPIO_ACTIVE_HIGH>;
-	status = "okay";
-
-	rx8900: rtc@32 {
-		compatible = "epson,rx8900";
-		reg = <0x32>;
-                epson,vdet-disable;
-                trickle-diode-disable;
-	};
-
-	usb2514b@2c {
-			compatible = "microchip,usb2514b";
-			reg = <0x2c>;
-	};
-
-	// Not yet upstreamed to tpm_tis_i2c.c
-	// https://github.com/ADVANTECH-Corp/linux-imx.git - imx8LBVD0075
-	//st33htpi: st33htpi@2e{
-	//	compatible = "st,st33htpm-i2c";
-	//	reg= <0x2e>;
-	//	pinctrl-names = "default";
-	//      pinctrl-0 = <&pinctrl_tpm>;
-	//      interrupt-parent = <&gpio5>;
-	//      interrupts = <5 IRQ_TYPE_LEVEL_HIGH>;
-	//};
-
-};
-
 // For Realtek RTL8119I-CG
 &pcie0 {
 	pinctrl-names = "default";
@@ -491,10 +416,10 @@
 };
 
 &usb_dwc3_0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usbotg>;
 	dr_mode = "host";
-
+	hnp-disable;
+	srp-disable;
+	adp-disable;
 	status = "okay";
 };
 
@@ -527,13 +452,70 @@
 	status = "okay";
 };
 
-// Not connected in ROM-5720
-//&wdog1 {
-//	pinctrl-names = "default";
-//	pinctrl-0 = <&pinctrl_wdog>;
-//	fsl,ext-reset-output;
-//	status = "okay";
-//};
+&ecspi1 {
+    #address-cells = <1>;
+    #size-cells = <0>;
+    fsl,spi-num-chipselects = <1>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_ecspi1 &pinctrl_ecspi1_cs>;
+    cs-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
+    status = "okay";
+
+	fm25@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		compatible = "cypress,fm25"; 
+		reg = <0>; /* cs_num*/
+		spi-max-frequency = <48000000>;
+		status = "okay";
+	};
+};
+
+&ecspi2 {
+    #address-cells = <1>;
+    #size-cells = <0>;
+    fsl,spi-num-chipselects = <1>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
+    cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+    status = "okay";
+};
+
+&usdhc1 {
+	assigned-clocks = <&clk IMX8MQ_CLK_USDHC1>;
+	assigned-clock-rates = <400000000>;
+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+	pinctrl-0 = <&pinctrl_usdhc1>;
+	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
+	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
+	vqmmc-supply = <&sw4_reg>;
+	bus-width = <8>;
+	non-removable;
+	no-sd;
+	no-sdio;
+	status = "okay";
+};
+
+&usdhc2 {
+	assigned-clocks = <&clk IMX8MQ_CLK_USDHC2>;
+	assigned-clock-rates = <200000000>;
+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
+	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&reg_usdhc2_vmmc>;
+    no-1-8-v;
+	status = "okay";
+};
+
+&wdog1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_wdog>;
+	fsl,ext-reset-output;
+	status = "okay";
+};
 
 &iomuxc {
 	pinctrl-names = "default";
@@ -565,27 +547,6 @@
 
 			MX8MQ_IOMUXC_SAI3_MCLK_GPIO5_IO2		0x19 	/* M.2 POWER_OFF */
 		>;
-	};
-
-	pinctrl_i2c4: i2c4grp {
-		fsl,pins = <
-			MX8MQ_IOMUXC_I2C4_SCL_I2C4_SCL			0x40000067
-			MX8MQ_IOMUXC_I2C4_SDA_I2C4_SDA			0x40000067
-		>;
-	};
-
-	pinctrl_usbotg: usbotggrp {
-			fsl,pins = <
-		MX8MQ_IOMUXC_GPIO1_IO10_GPIO1_IO10	0x19	/* USB0_OTG_ID_1V8*/
-		MX8MQ_IOMUXC_SAI2_RXFS_GPIO4_IO21	0x16	/* USB_OTG0_OC */
-			>;
-	};
-
-	pinctrl_i2c4_gpio: i2c4_gpio_grp {
-			fsl,pins = <
-					MX8MQ_IOMUXC_I2C4_SCL_GPIO5_IO20                0x19
-					MX8MQ_IOMUXC_I2C4_SDA_GPIO5_IO21                0x19
-			>;
 	};
 
 	pinctrl_qspi: qspigrp {
@@ -851,11 +812,11 @@
 };
 
 &vpu {
-	status = "okay";
+	status = "disabled";
 };
 
 &gpu3d {
-	status = "okay";
+	status = "disabled";
 };
 
 &irqsteer {
@@ -863,7 +824,7 @@
 };
 
 &dcss {
-	status = "okay";
+	status = "disabled";
 
 	port@0 {
 		dcss_out: endpoint {
@@ -875,27 +836,11 @@
 &hdmi {
 	compatible = "cdn,imx8mq-hdmi";
 	lane-mapping = <0xe4>;
-	status = "okay";
+	status = "disabled";
 	port@1 {
 		hdmi_in: endpoint {
 			remote-endpoint = <&dcss_out>;
 		};
 	};
 };
-
-&ecspi2 {
-        cs-gpios = <&gpio5 13 0>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_ecspi2>;
-        status = "okay";
-
-        flash: m25p80@0 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                compatible = "micron,n25qba16";
-                spi-max-frequency = <20000000>;
-                reg = <0>;
-        };
-};
-
 
