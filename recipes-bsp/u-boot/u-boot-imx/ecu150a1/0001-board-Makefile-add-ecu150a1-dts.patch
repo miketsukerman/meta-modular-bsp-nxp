@@ -1,5 +1,6 @@
 diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
 --- a/arch/arm/dts/Makefile
 +++ b/arch/arm/dts/Makefile
-@@ -934,0 +935 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
+@@ -934,1 +934,2 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 +	ecu150a1.dtb \
+ 	imx8mm-data-modul-edm-sbc.dtb \
