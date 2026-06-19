@@ -1,3 +1,5 @@
+Upstream-Status: Inappropriate
+
 diff --git a/board/freescale/imx8mq_evk/Makefile b/board/freescale/imx8mq_evk/Makefile
 index fd260bb..e70ab9b 100644
 --- a/board/freescale/imx8mq_evk/Makefile
