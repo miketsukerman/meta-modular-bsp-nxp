@@ -50,5 +50,5 @@ do_configure:prepend() {
     sed -i 's/console=ttymxc0,115200/console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200/g' "$where"
     sed -i 's/loadimage=fatload /loadimage=load /g' "$where"
     sed -i 's/loadfdt=fatload /loadfdt=load /g' "$where"
-    sed -i '/^#define PHYS_SDRAM_SIZE/,+2c\\#define PHYS_SDRAM_SIZE            SZ_4G /* 4GB DDR ceiling */' "$where"
+    sed -i '/^#define PHYS_SDRAM_SIZE/,+2c\\#define PHYS_SDRAM_SIZE            SZ_4G /* max supported RAM size */' "$where"
 }
