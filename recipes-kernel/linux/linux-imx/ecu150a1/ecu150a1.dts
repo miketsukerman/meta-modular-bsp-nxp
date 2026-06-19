@@ -20,9 +20,10 @@
 		stdout-path = &uart1;
 	};
 
-	memory@80000000 {
+	memory@40000000 {
 		device_type = "memory";
-		reg = <0x00000000 0x80000000 0 0x40000000>;
+		reg = <0x00000000 0x40000000 0x00000000 0xc0000000>,
+		      <0x00000001 0x00000000 0x00000000 0x40000000>;
 	};
 
 	resmem: reserved-memory {
@@ -47,11 +48,6 @@
 		board-cpu = "IMX8MQ";
 	};
 
-	// aliases {
-		// rtc1 = &snvs_rtc;
-		// watchdog0 = &wdt;
-	// };
-
 	pcie0_refclk: pcie0-refclk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
@@ -63,7 +59,6 @@
 		#clock-cells = <0>;
 		clock-frequency = <100000000>;
 	};
-
 
 	reg_usdhc2_vmmc: regulator-vsd-3v3 {
 		pinctrl-names = "default";
@@ -757,9 +752,9 @@
 	status = "disabled";
 };
 
-// &gpu3d {
-// 	status = "disabled";
-// };
+&gpu3d {
+	status = "disabled";
+};
 
 &irqsteer {
 	status = "okay";
@@ -785,4 +780,3 @@
 		};
 	};
 };
-
