@@ -47,11 +47,6 @@
 		board-cpu = "IMX8MQ";
 	};
 
-	// aliases {
-		// rtc1 = &snvs_rtc;
-		// watchdog0 = &wdt;
-	// };
-
 	pcie0_refclk: pcie0-refclk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
@@ -63,7 +58,6 @@
 		#clock-cells = <0>;
 		clock-frequency = <100000000>;
 	};
-
 
 	reg_usdhc2_vmmc: regulator-vsd-3v3 {
 		pinctrl-names = "default";
