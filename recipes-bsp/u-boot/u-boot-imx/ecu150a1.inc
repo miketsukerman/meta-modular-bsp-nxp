@@ -5,9 +5,7 @@ SRC_URI += " \
     file://lpddr4_timing_4g.c;subdir=git/board/freescale/imx8mq_evk/ \
     file://lpddr4_timing_b0.c;subdir=git/board/freescale/imx8mq_evk/ \
     file://0001-board-Makefile-add-ecu150a1-dts.patch \
-    file://0002-board-imx8mq_evk-add-multi-ddr-timing.patch \
     file://0003-board-spl-ddr-runtime-selection.patch \
-    file://0004-board-imx8mq_evk-identify-ecu150a1.patch \
 "
 
 do_configure:prepend() {
