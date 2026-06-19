@@ -1,3 +1,5 @@
+Upstream-Status: Inappropriate
+
 diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
 index 737e959..1e6889e 100644
 --- a/arch/arm/dts/Makefile

@@ -1,3 +1,5 @@
+Upstream-Status: Inappropriate
+
 diff --git a/board/freescale/imx8mq_evk/spl.c b/board/freescale/imx8mq_evk/spl.c
 index c7775c3..498b885 100644
 --- a/board/freescale/imx8mq_evk/spl.c
