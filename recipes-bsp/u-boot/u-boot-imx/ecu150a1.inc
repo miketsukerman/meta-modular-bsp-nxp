@@ -1,22 +1,28 @@
 SRC_URI += " \
-    file://ecu150a1.dts;subdir=git/arch/arm/dts/ \
-    file://lpddr4_timing_1g.c;subdir=git/board/freescale/imx8mq_evk/ \
-    file://lpddr4_timing_2g.c;subdir=git/board/freescale/imx8mq_evk/ \
-    file://lpddr4_timing_4g.c;subdir=git/board/freescale/imx8mq_evk/ \
-    file://lpddr4_timing_b0.c;subdir=git/board/freescale/imx8mq_evk/ \
-    file://0001-board-Makefile-add-ecu150a1-dts.patch \
-    file://0002-board-imx8mq_evk-add-multi-ddr-timing.patch \
-    file://0003-board-spl-ddr-runtime-selection.patch \
-    file://0004-board-imx8mq_evk-identify-ecu150a1.patch \
+    file://ecu150a1.dts;subdir=dts/upstream/src/arm64/freescale/  \
+    file://lpddr4_timing_1g.c;subdir=board/freescale/imx8mq_evk/ \
+    file://lpddr4_timing_2g.c;subdir=board/freescale/imx8mq_evk/ \
+    file://lpddr4_timing_4g.c;subdir=board/freescale/imx8mq_evk/ \
+    file://0002-board-spl-ddr-runtime-selection.patch \
 "
 
 do_configure:prepend() {
-    where=${S}/configs/imx8mq_wevk_defconfig
+    cp "${UNPACKDIR}/board/freescale/imx8mq_evk/lpddr4_timing_1g.c" \
+		   "${S}/board/freescale/imx8mq_evk/"
+	cp "${UNPACKDIR}/board/freescale/imx8mq_evk/lpddr4_timing_2g.c" \
+		   "${S}/board/freescale/imx8mq_evk/"
+	cp "${UNPACKDIR}/board/freescale/imx8mq_evk/lpddr4_timing_4g.c" \
+		   "${S}/board/freescale/imx8mq_evk/"
+
+	cp "${UNPACKDIR}/dts/upstream/src/arm64/freescale/ecu150a1.dts" \
+		   "${S}/dts/upstream/src/arm64/freescale/ecu150a1.dts"
+    
+    where=${S}/configs/imx8mq_evk_defconfig
     tag=CONFIG_IMX8MQ_4GB_DDR_TIMING
 
     sed -i "/^$tag=/c# $tag is not set" "$where"
 
-    sed -i '/^CONFIG_DEFAULT_DEVICE_TREE=/c\CONFIG_DEFAULT_DEVICE_TREE="ecu150a1"' "$where"
+    sed -i '/^CONFIG_DEFAULT_DEVICE_TREE=/c\CONFIG_DEFAULT_DEVICE_TREE="freescale/ecu150a1"' "$where"
 
     if grep -q '^CONFIG_DEFAULT_FDT_FILE=' "$where"; then
         sed -i '/^CONFIG_DEFAULT_FDT_FILE=/c\CONFIG_DEFAULT_FDT_FILE="ecu150a1.dtb"' "$where"
@@ -24,6 +30,12 @@ do_configure:prepend() {
 
     sed -i '/^CONFIG_USB_TCPC=/c\# CONFIG_USB_TCPC is not set' "$where"
     sed -i '/^CONFIG_SPL_MAX_SIZE=/c\CONFIG_SPL_MAX_SIZE=0x27000' "$where"
+    
+    if grep -q '^# CONFIG_MXC_UART is not set' "$where"; then
+        sed -i '/^# CONFIG_MXC_UART is not set/c\CONFIG_MXC_UART=y' "$where"
+    elif ! grep -q '^CONFIG_MXC_UART=y' "$where"; then
+        echo 'CONFIG_MXC_UART=y' >> "$where"
+    fi
 
     if grep -q '^# CONFIG_CMD_EXPORTENV is not set' "$where"; then
         sed -i '/^# CONFIG_CMD_EXPORTENV is not set/c\CONFIG_CMD_EXPORTENV=y' "$where"

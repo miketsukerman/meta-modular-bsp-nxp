@@ -1,12 +1,24 @@
+From 38f6da1aeb08fe17b7c0988368d57b9cb2b706ef Mon Sep 17 00:00:00 2001
+From: Mikhail Tsukerman <miketsukerman@gmail.com>
+Date: Fri, 19 Jun 2026 17:07:13 +0200
+Subject: [PATCH] Add ECU-150 A1 DTB compilation
+Upstream-Status: Inappropriate
+---
+ arch/arm/dts/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
 diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
-index 737e959..1e6889e 100644
+index a9d61e19599..9613e2446fe 100644
 --- a/arch/arm/dts/Makefile
 +++ b/arch/arm/dts/Makefile
-@@ -1152,6 +1152,7 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
- 	imx8mn-venice.dtb \
- 	imx8mn-venice-gw7902.dtb \
- 	imx8mq-evk.dtb \
+@@ -943,6 +943,7 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
+ 	imx8mm-phg.dtb \
+ 	imx8mq-cm.dtb \
+ 	imx8mn-ddr4-ab2.dtb \
 +	ecu150a1.dtb \
- 	imx8mm-beacon-kit.dtb \
- 	imx8mn-beacon-kit.dtb \
+ 	imx8mn-ab2.dtb \
+ 	imx8mn-var-som-symphony.dtb \
  	imx8mq-mnt-reform2.dtb \
+-- 
+2.43.0
+
