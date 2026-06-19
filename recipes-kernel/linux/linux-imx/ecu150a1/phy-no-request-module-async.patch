@@ -1,0 +1,56 @@
+Upstream-Status: Submitted
+
+In Linux 6.6, __request_module() contains a WARN_ON_ONCE that fires when
+request_module() (wait=true) is called from an async workqueue context:
+
+  kernel/module/kmod.c: if (wait && current_is_async()) { WARN_ON_ONCE(1); ... }
+
+During PCIe r8169 driver initialisation the probe runs in an async
+workqueue (async_run_entry_fn).  The probe path is:
+
+  rtl_init_one -> __devm_mdiobus_register -> mdiobus_scan ->
+  phy_device_create -> phy_request_driver_module -> request_module()
+
+phy_request_driver_module() calls request_module() unconditionally, even
+when the PHY driver is already compiled into the kernel (=y) and therefore
+already registered.  On ECU150A1 CONFIG_REALTEK_PHY=y so the driver is
+always present and the request_module() call is unnecessary.
+
+Guard the request_module() call with current_is_async() so that it is
+skipped when the call would trigger the warning.  Drivers that are built-in
+are already available; drivers that are modules will be handled by the
+normal deferred-probe / uevent mechanism.
+
+Signed-off-by: Advantech BSP team
+---
+ drivers/net/phy/phy_device.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index 354b367cdf64..acd393e53118 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -19,6 +19,7 @@
+ #include <linux/bitmap.h>
+ #include <linux/phy.h>
+ #include <linux/net_tstamp.h>
++#include <linux/async.h>
+ #include <linux/mdio.h>
+ #include <linux/io.h>
+ #include <linux/uaccess.h>
+@@ -749,6 +750,14 @@ static int phy_request_driver_module(struct phy_device *dev, u32 phy_id)
+ {
+ 	int ret;
+ 
++	/* Avoid triggering the WARN_ON_ONCE in __request_module() that fires
++	 * when request_module() (wait=true) is called from an async workqueue.
++	 * PHY drivers compiled into the kernel (=y) are already registered, so
++	 * the request_module() call is unnecessary in that case.  For loadable
++	 * modules the normal uevent/deferred-probe mechanism handles loading.
++	 */
++	if (current_is_async())
++		return 0;
++
+ 	ret = request_module(MDIO_MODULE_PREFIX MDIO_ID_FMT, MDIO_ID_ARGS(phy_id));
+ 	/* We only check for -ENOENT if modules are supported, because
+ 	 * if they are not, request_module will always return -ENOENT.
