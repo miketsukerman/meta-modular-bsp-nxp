@@ -11,7 +11,10 @@ SRC_URI += " \
 "
 
 do_configure:prepend() {
-    where=${S}/configs/imx8mq_evk_defconfig
+    where=${S}/configs/imx8mq_wevk_defconfig
+    tag=CONFIG_IMX8MQ_4GB_DDR_TIMING
+
+    sed -i "/^$tag=/c# $tag is not set" "$where"
 
     sed -i '/^CONFIG_DEFAULT_DEVICE_TREE=/c\CONFIG_DEFAULT_DEVICE_TREE="ecu150a1"' "$where"
 
