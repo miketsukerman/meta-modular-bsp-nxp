@@ -24,7 +24,7 @@ index c7775c3..498b885 100644
 +		ddr_init(&dram_timing_4g);
 +		ram_size = get_ram_size((long *)0x40000000, (long)SZ_4G);
 +		printf("SPL: 4GB timing detected %llu MiB RAM\n",
-+		       (unsigned long long)(ram_size >> 20));
++		       (unsigned long long)(ram_size / SZ_1M));
 +		if (ram_size >= SZ_4G) {
 +			puts("SPL: selected 4GB DDR timing\n");
 +			return;
@@ -34,7 +34,7 @@ index c7775c3..498b885 100644
 +		ddr_init(&dram_timing_2g);
 +		ram_size = get_ram_size((long *)0x40000000, (long)SZ_2G);
 +		printf("SPL: 2GB timing detected %llu MiB RAM\n",
-+		       (unsigned long long)(ram_size >> 20));
++		       (unsigned long long)(ram_size / SZ_1M));
 +		if (ram_size >= SZ_2G) {
 +			puts("SPL: selected 2GB DDR timing\n");
 +			return;
@@ -45,7 +45,7 @@ index c7775c3..498b885 100644
 -	else
 +		ram_size = get_ram_size((long *)0x40000000, (long)SZ_1G);
 +		printf("SPL: 1GB timing detected %llu MiB RAM\n",
-+		       (unsigned long long)(ram_size >> 20));
++		       (unsigned long long)(ram_size / SZ_1M));
 +		if (ram_size >= SZ_1G) {
 +			puts("SPL: selected 1GB DDR timing\n");
 +			return;
