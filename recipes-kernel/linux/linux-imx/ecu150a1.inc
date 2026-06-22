@@ -15,17 +15,12 @@ SRC_URI += " \
     file://drivers/rtc/rtc-ht1382.cfg \
 "
 
-# additional kernel configuration options for the ECU150A1 board
-# SRC_URI += " \
-#     file://kernel_config.cfg \
-# "
-
-# DELTA_KERNEL_DEFCONFIG += " \
-#         usb_wdm.cfg \
-#         fintek-f81603.cfg \
-#         rtl8169.cfg \
-#         drivers/rtc/rtc-ht1382.cfg \
-# "
+DELTA_KERNEL_DEFCONFIG += " \
+        usb_wdm.cfg \
+        fintek-f81603.cfg \
+        rtl8169.cfg \
+        drivers/rtc/rtc-ht1382.cfg \
+"
 
 do_configure:prepend() {
     cp "${UNPACKDIR}/arch/arm64/boot/dts/freescale/ecu150a1.dts" "${S}/arch/arm64/boot/dts/freescale/"
