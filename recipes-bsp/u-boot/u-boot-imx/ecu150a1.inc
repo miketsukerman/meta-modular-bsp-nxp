@@ -1,6 +1,5 @@
 SRC_URI += " \
-    file://0001-board-Makefile-add-ecu150a1-dts.patch \
-    file://ecu150a1.dts;subdir=arch/arm/dts/ \
+    file://ecu150a1.dts;subdir=dts/upstream/src/arm64/freescale/ \
     file://lpddr4_timing_1g.c;subdir=board/freescale/imx8mq_evk/ \
     file://lpddr4_timing_2g.c;subdir=board/freescale/imx8mq_evk/ \
     file://lpddr4_timing_4g.c;subdir=board/freescale/imx8mq_evk/ \
@@ -15,15 +14,19 @@ do_configure:prepend() {
 	cp "${UNPACKDIR}/board/freescale/imx8mq_evk/lpddr4_timing_4g.c" \
 		   "${S}/board/freescale/imx8mq_evk/"
 
-	cp "${UNPACKDIR}/arch/arm/dts/ecu150a1.dts" \
-		   "${S}/arch/arm/dts/ecu150a1.dts"
+	cp "${UNPACKDIR}/dts/upstream/src/arm64/freescale/ecu150a1.dts" \
+		   "${S}/dts/upstream/src/arm64/freescale/ecu150a1.dts"
+
+	# Register ecu150a1.dtb with the upstream DTS build system
+	echo "dtb-\$(CONFIG_ARCH_IMX8MQ) += ecu150a1.dtb" \
+		>> "${S}/dts/upstream/src/arm64/freescale/Makefile"
 
     where=${S}/configs/imx8mq_wevk_defconfig
     tag=CONFIG_IMX8MQ_4GB_DDR_TIMING
 
     sed -i "/^$tag=/c# $tag is not set" "$where"
 
-    sed -i '/^CONFIG_DEFAULT_DEVICE_TREE=/c\CONFIG_DEFAULT_DEVICE_TREE="ecu150a1"' "$where"
+    sed -i '/^CONFIG_DEFAULT_DEVICE_TREE=/c\CONFIG_DEFAULT_DEVICE_TREE="freescale/ecu150a1"' "$where"
 
     if grep -q '^CONFIG_DEFAULT_FDT_FILE=' "$where"; then
         sed -i '/^CONFIG_DEFAULT_FDT_FILE=/c\CONFIG_DEFAULT_FDT_FILE="ecu150a1.dtb"' "$where"
