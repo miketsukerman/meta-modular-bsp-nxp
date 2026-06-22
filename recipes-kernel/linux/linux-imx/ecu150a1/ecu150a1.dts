@@ -758,9 +758,9 @@
 	status = "disabled";
 };
 
-&gpu3d {
-	status = "disabled";
-};
+// &gpu3d {
+// 	status = "disabled";
+// };
 
 &irqsteer {
 	status = "okay";
