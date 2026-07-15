@@ -16,10 +16,10 @@ The following boards are supported by this layer:
  * ROM-5722-CQ-A1 6GB (`rom5722-db2510` NXP i.MX 8M Plus)
  * RSB-3720-CD/CQ-A1/A2 6GB A1,A2 (`rsb3720` `rsb3720-6g` NXP i.MX 8M Plus)
  * RSB-3720-CD/CQ-A2 4GB A2 (`rsb3720-4g` NXP i.MX 8M Plus)
+ * AOM-5521 8GB (MACHINE=`aom5521-db2510` NXP i.MX 95)
 
 Preliminary support:
 
- * AOM-5521 8GB (MACHINE=`aom5521-db2510` NXP i.MX 95)
  * ROM-5720-CD/CQ-A2 2GB (`rom5720-db5901` NXP i.MX 8M)
  * ROM-5721-CD-A1/A2 1GB (`rom5721-db5901-1g` NXP i.MX 8M Mini)
  * ROM-5721-CQ-A1/A2 2GB (`rom5721-db5901-2g` NXP i.MX 8M Mini)
@@ -253,25 +253,23 @@ AOM-5521 (on SOM-DB2510 carrier board)
 
 |Device |Status|Comment|
 |-------|------|-------|
-|USDHC1 | ⚠️ | eMMC 5.1 (not tested) |
-|USDHC2 | ⚠️ | SD Card (not tested) |
-|ETH0 | ⚠️ | Ethernet (not tested) |
-|ETH1 | ⚠️ | Ethernet with TSN (not tested) |
-|USB1| ⚠️ | USB 3.2 Gen1 (not tested) |
-|USB2| ⚠️ | USB 2.0 (not tested) |
-|LPUART1 | ⚠️ | Console (not tested) |
-|I2C | ⚠️ | Not tested |
-|CAN-FD| ⚠️ | Not tested |
+|USDHC1 | ✅ | eMMC 5.1 tested (PASS) |
+|USDHC2 | ✅ | SD Card tested (PASS) |
+|ETH0 | ✅ | Ethernet tested (PASS) |
+|ETH1 | ✅ | Ethernet with TSN tested (PASS) |
+|USB1| ⚠️ | USB 3.2 Gen1 detected, plugged-device test ERROR |
+|USB2| ⚠️ | USB 2.0 detected, plugged-device test ERROR |
+|LPUART1 | ✅ | Console tested (PASS) |
+|I2C | ✅ | Automated tests OK |
+|CAN-FD| ✅⚠️ | Automated tests OK; external controller test is manual |
 |GPIO| ⚠️ | Not tested |
-|NPU| ⚠️ | 2 TOPS NPU (not tested) |
-|GPU| ⚠️ | Mali-G310 (not tested) |
+|NPU| ✅ | 2 TOPS NPU tested (automated tests OK) |
+|GPU| ⚠️ | Mali-G310 present; DRI/KMS (card1), OpenGL ES, Wayland, Xwayland tests ERROR |
 |VPU| ⚠️ | 4K video processing (not tested) |
 |HDMI| ⚠️ | Not tested |
 |MIPI-DSI| ⚠️ | 4-lane (not tested) |
 |LVDS| ⚠️ | Dual-channel (not tested) |
-|PCIe| ⚠️ | 2x Gen 3.0 (not tested) |
+|PCIe| ✅ | 2x Gen 3.0 tested (automated tests OK) |
 |M.2| ⚠️ | Not tested |
 |mini PCIe| ⚠️ | Not tested |
-|Secure Boot | ⚠️ | Not tested |
-
-Note: This is preliminary support for AOM-5521. All features require testing and validation.
+|Secure Boot | ⚠️ | Security automated tests OK; Secure Boot flow not explicitly covered |
