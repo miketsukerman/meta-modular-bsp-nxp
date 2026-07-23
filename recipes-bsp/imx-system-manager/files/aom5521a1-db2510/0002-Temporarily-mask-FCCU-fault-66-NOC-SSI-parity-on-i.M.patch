@@ -1,0 +1,26 @@
+From 4f76d588ff409d0c9581ccdf89d442d8e6d58fec Mon Sep 17 00:00:00 2001
+From: "Mikhail Tsukerman" <mikhail.tsukerman@advantech.com>
+Date: Mon, 20 Jul 2026 18:51:07 +0000
+Subject: [PATCH 2/2] Temporarily mask FCCU fault 66 (NOC SSI parity) on i.MX95
+Upstream-Status: Inappropriate
+---
+ components/SAF/devices/MIMX95/src/eMcem_Cfg.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/components/SAF/devices/MIMX95/src/eMcem_Cfg.c b/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
+index fa6a5f4..268a25b 100755
+--- a/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
++++ b/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
+@@ -199,7 +199,8 @@ const eMcem_CVfccuInstanceCfgType CVfccuCfg =
+             (uint32)0xFFFC000BUL,
+             (uint32)0x40000003UL,
+             /* Bit 4 (fault 68, DEV_SM_FAULT_DDR_SSI / DDRMIX SSI parity) intentionally masked; see SM-378 */
+-            (uint32)0x0000002FUL
++            /* Bit 2 (fault 66, DEV_SM_FAULT_NOC_SSI / NOC SSI parity) temporarily masked; see SM-378 */
++            (uint32)0x0000002BUL
+         },
+         { /*!< Reaction Set ID's */
+             (uint32)0x00000000UL,
+-- 
+2.43.0
+

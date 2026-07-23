@@ -1,0 +1,26 @@
+From c60f5f3e85e93a02b80876c5ddffb27ae7829d4f Mon Sep 17 00:00:00 2001
+From: "Mikhail Tsukerman" <mikhail.tsukerman@advantech.com>
+Date: Mon, 20 Jul 2026 12:15:52 +0000
+Subject: [PATCH 1/2] Disable NOC_SSI FCCU fault (66) in i.MX95 eMcem config
+Upstream-Status: Inappropriate
+---
+ components/SAF/devices/MIMX95/src/eMcem_Cfg.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/components/SAF/devices/MIMX95/src/eMcem_Cfg.c b/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
+index f574926..f7d9111 100755
+--- a/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
++++ b/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
+@@ -198,7 +198,8 @@ const eMcem_CVfccuInstanceCfgType CVfccuCfg =
+         { /*!< Faults Enabled */
+             (uint32)0xFFFC000BUL,
+             (uint32)0x40000003UL,
+-            (uint32)0x0000003FUL
++            /* Temporarily disable NOC_SSI (fault 66, bit 2): 0x3F -> 0x3B */
++            (uint32)0x0000003BUL
+         },
+         { /*!< Reaction Set ID's */
+             (uint32)0x00000000UL,
+-- 
+2.43.0
+

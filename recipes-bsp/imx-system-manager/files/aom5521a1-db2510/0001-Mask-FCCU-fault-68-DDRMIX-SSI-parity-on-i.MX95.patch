@@ -1,0 +1,26 @@
+From 12600a60ad5c459c366decc0b78842462b1d2384 Mon Sep 17 00:00:00 2001
+From: "Mikhail Tsukerman" <mikhail.tsukerman@advantech.com>
+Date: Mon, 20 Jul 2026 18:36:01 +0000
+Subject: [PATCH 1/2] Mask FCCU fault 68 (DDRMIX SSI parity) on i.MX95
+Upstream-Status: Inappropriate
+---
+ components/SAF/devices/MIMX95/src/eMcem_Cfg.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/components/SAF/devices/MIMX95/src/eMcem_Cfg.c b/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
+index f574926..fa6a5f4 100755
+--- a/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
++++ b/components/SAF/devices/MIMX95/src/eMcem_Cfg.c
+@@ -198,7 +198,8 @@ const eMcem_CVfccuInstanceCfgType CVfccuCfg =
+         { /*!< Faults Enabled */
+             (uint32)0xFFFC000BUL,
+             (uint32)0x40000003UL,
+-            (uint32)0x0000003FUL
++            /* Bit 4 (fault 68, DEV_SM_FAULT_DDR_SSI / DDRMIX SSI parity) intentionally masked; see SM-378 */
++            (uint32)0x0000002FUL
+         },
+         { /*!< Reaction Set ID's */
+             (uint32)0x00000000UL,
+-- 
+2.43.0
+

@@ -1,0 +1,45 @@
+From 9852b3a7da2958bb5a3cae8146d6057442943cc1 Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Mon, 20 Jul 2026 13:10:19 +0000
+Subject: [PATCH 2/2] Use alignment-safe reads for destination probe; fix
+ indentation
+Upstream-Status: Inappropriate
+---
+ common/spl/spl_imx_container.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/common/spl/spl_imx_container.c b/common/spl/spl_imx_container.c
+index 54fe5187ad6..b81b996c299 100644
+--- a/common/spl/spl_imx_container.c
++++ b/common/spl/spl_imx_container.c
+@@ -11,6 +11,7 @@
+ #include <mapmem.h>
+ #include <spl.h>
+ #include <cpu_func.h>
++#include <asm/unaligned.h>
+ #ifdef CONFIG_AHAB_BOOT
+ #include <asm/mach-imx/ahab.h>
+ #endif
+@@ -123,13 +124,17 @@ static struct boot_img_t *read_auth_image(struct spl_image_info *spl_image,
+ 		ctnr_log("read_auth_image[%d]: read returned 0x%lx (expected >= 0x%x) into dst %p\n",
+ 			 image_index, read, images[image_index].size, buf);
+ 		if (read < images[image_index].size) {
+-				printf("%s: failed to load image to a non-secure region\n", __func__);
++			printf("%s: failed to load image to a non-secure region\n", __func__);
+ 			return NULL;
+ 		}
+ 	}
+ 
+ 	if (IMX_CTNR_LOG_ENABLED) {
+-		u32 *w = (u32 *)buf;
++		u32 w[4];
++		int j;
++
++		for (j = 0; j < 4; j++)
++			w[j] = get_unaligned((u32 *)buf + j);
+ 
+ 		ctnr_log("read_auth_image[%d]: first words @dst 0x%llx: %08x %08x %08x %08x\n",
+ 			 image_index, (unsigned long long)images[image_index].dst,
+-- 
+2.43.0
+

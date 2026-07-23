@@ -1,0 +1,25 @@
+From 7a3485ee89f0628caad5d1ade76df0bbf6437b74 Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Mon, 20 Jul 2026 14:58:38 +0000
+Subject: [PATCH 4/4] Use IS_ENABLED(CONFIG_IMX95) for consistency in soc.c
+Upstream-Status: Inappropriate
+---
+ arch/arm/mach-imx/imx9/scmi/soc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-imx/imx9/scmi/soc.c b/arch/arm/mach-imx/imx9/scmi/soc.c
+index f581bf19652..03d85dcc6df 100644
+--- a/arch/arm/mach-imx/imx9/scmi/soc.c
++++ b/arch/arm/mach-imx/imx9/scmi/soc.c
+@@ -2303,7 +2303,7 @@ void *arch_get_container_trampoline(void)
+ 	return (void *)((ulong)CFG_SYS_SDRAM_BASE + size - SZ_16M);
+ }
+ 
+-#ifdef CONFIG_IMX95
++#if IS_ENABLED(CONFIG_IMX95)
+ u32 container_hdr_alignment(void)
+ {
+ 	return is_imx95_a0() ? 0x400 : 0x4000;
+-- 
+2.43.0
+
